@@ -1,0 +1,45 @@
+@import "vars";
+
+.cart-item {
+  margin: 80px auto;
+  
+  .progress-info {
+    .block();
+
+    padding: 20px;
+
+    .progress-info { font-weight: 400; }
+    .progress { margin-top: 10px; height: 5px; }
+  }
+}
+.cart-list {
+  margin: 30px auto;
+
+  .table {
+    .block();
+
+    tr td {
+      vertical-align: middle;
+
+      img {
+        display: block;
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+      .input-group {
+        flex-wrap: nowrap;
+
+        input {
+          width: 50px;
+          text-align: center;
+        }
+      }
+      &:nth-child(2) { width: 100%; }
+    }
+  }
+  span.total {
+    font-weight: bold;
+    margin-right: 20px;
+  }
+}

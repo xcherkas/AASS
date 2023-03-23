@@ -1,0 +1,32 @@
+@import "vars";
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  padding: 10px 30px;
+  background: transparent;
+  z-index: 100;
+
+  .header-link {
+    padding: 5px 16px 0;
+    margin: 0 15px;
+    padding-bottom: 3px;
+    border: 2px solid transparent;
+    transition: .3s ease-in-out;
+    text-decoration: none;
+    color: @text;
+    text-transform: uppercase;
+    background: #fff;
+    box-shadow: @shadow;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 10px;
+
+    &.active {
+      border-color: @main;
+    }
+  }
+}
