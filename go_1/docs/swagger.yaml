@@ -4,6 +4,16 @@ definitions:
       message:
         type: string
     type: object
+  main.SearchResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  main.ItemDetail:
+    properties:
+      message:
+        type: string
+    type: object
 info:
   contact:
     email: support@swagger.io
@@ -36,6 +46,44 @@ paths:
       summary: Greeter
       tags:
       - Hello
+  /v1/search:
+    get:
+      operationId: "2"
+      parameters:
+        - description: query
+          in: query
+          name: query
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SearchResponse'
+      summary: Item details
+      tags:
+        - Details
+  /v1/details:
+    get:
+      operationId: "3"
+      parameters:
+        - description: item name
+          in: query
+          name: item
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ItemDetail'
+      summary: Search
+      tags:
+        - Search-Query
 securityDefinitions:
   BasicAuth:
     type: basic

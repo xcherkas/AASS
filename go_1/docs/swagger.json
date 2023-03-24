@@ -44,10 +44,84 @@
                     }
                 }
             }
+        },
+        "/v1/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Search",
+                "operationId": "2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.SearchResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/details": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Details"
+                ],
+                "summary": "Item details",
+                "operationId": "3",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "item desc",
+                        "name": "item",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.ItemDetail"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "main.GreeterResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.ItemDetail": {
             "type": "object",
             "properties": {
                 "message": {
