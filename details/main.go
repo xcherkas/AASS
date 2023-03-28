@@ -31,31 +31,6 @@ func main() {
 	// Create a new boot instance.
 	boot := rkboot.NewBoot()
 
-	// Connection on local database
-	//const (
-	//	host     = "localhost"
-	//	dbport   = 5432
-	//	user     = "postgres"
-	//	password = "Lukino1234"
-	//	dbname   = "aass"
-	//)
-
-	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	//	"password=%s dbname=%s sslmode=disable",
-	//	host, dbport, user, password, dbname)
-	//
-	//db, err := sql.Open("postgres", psqlInfo)
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//err = db.Ping()
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println("Established a successful connection!")
-
 	// Register handler
 	entry := rkgin.GetGinEntry("rk-demo")
 	entry.Router.GET("/v1/details", DetailShower)

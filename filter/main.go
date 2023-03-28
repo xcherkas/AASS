@@ -31,15 +31,6 @@ import (
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
 
-	// Connection on local database
-	//const (
-	//	host     = "localhost"
-	//	dbport   = 5432
-	//	user     = "postgres"
-	//	password = "Lukino1234"
-	//	dbname   = "aass"
-	//)
-
 	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 	//	"password=%s dbname=%s sslmode=disable",
 	//	host, dbport, user, password, dbname)
@@ -69,8 +60,7 @@ func main() {
 	boot.WaitForShutdownSig(context.TODO())
 }
 
-
-// Gets all products and return them as a list
+// FilterList Gets all products and return them as a list
 func FilterList(ctx *gin.Context) {
 	// load response to json array
 	ctx.JSON(http.StatusOK, &FilterResponse{
