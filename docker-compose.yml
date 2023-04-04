@@ -4,7 +4,9 @@ services:
   details:
     build:
       dockerfile: Dockerfile.go
-      context: ./details/
+      context: .
+    depends_on:
+      - postgres
     volumes:
       - ./details/:/opt/app/api
     networks:
@@ -12,7 +14,9 @@ services:
   filter:
     build:
       dockerfile: Dockerfile.go
-      context: ./filter/
+      context: .
+    depends_on:
+      - postgres
     volumes:
       - ./filter/:/opt/app/api
     networks:
@@ -20,7 +24,9 @@ services:
   products:
     build:
       dockerfile: Dockerfile.go
-      context: ./products/
+      context: .
+    depends_on:
+      - postgres
     volumes:
       - ./products/:/opt/app/api
     networks:
@@ -28,7 +34,9 @@ services:
   searcher:
     build:
       dockerfile: Dockerfile.go
-      context: ./searcher/
+      context: .
+    depends_on:
+      - postgres
     volumes:
       - ./searcher/:/opt/app/api
     networks:
@@ -37,7 +45,12 @@ services:
   nginx:
     build:
       dockerfile: Dockerfile.nginx
-      context: ./nginx/
+      context: .
+    depends_on:
+      - details
+      - filter
+      - products
+      - searcher
     networks:
       - comnet
     ports:
@@ -51,7 +64,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       PGDATA: /data/postgres
     volumes:
-       - postgres:/data/postgres
+       - ./postgres:/data/postgres
     ports:
       - "5432:5432"
     networks:
