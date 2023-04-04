@@ -1,15 +1,47 @@
 version: '3.5'
 
 services:
-  go_service_1:
+  details:
     build:
-      dockerfile: Dockerfile
-      context: .
-      target: dev
+      dockerfile: Dockerfile.go
+      context: ./details/
     volumes:
-      - ./go_1/:/opt/app/api
+      - ./details/:/opt/app/api
+    networks:
+      - comnet
+  filter:
+    build:
+      dockerfile: Dockerfile.go
+      context: ./filter/
+    volumes:
+      - ./filter/:/opt/app/api
+    networks:
+      - comnet
+  products:
+    build:
+      dockerfile: Dockerfile.go
+      context: ./products/
+    volumes:
+      - ./products/:/opt/app/api
+    networks:
+      - comnet
+  searcher:
+    build:
+      dockerfile: Dockerfile.go
+      context: ./searcher/
+    volumes:
+      - ./searcher/:/opt/app/api
+    networks:
+      - comnet
+
+  nginx:
+    build:
+      dockerfile: Dockerfile.nginx
+      context: ./nginx/
+    networks:
+      - comnet
     ports:
-      - "8080:8080"
+      - "8080:80"
 
   postgres:
     container_name: postgres
@@ -23,11 +55,11 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - comnet
     restart: unless-stopped
 
 networks:
-  postgres:
+  comnet:
     driver: bridge
 
 volumes:
