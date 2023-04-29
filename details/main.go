@@ -11,10 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rookie-ninja/rk-boot/v2"
 	"github.com/rookie-ninja/rk-db/postgres"
-	"github.com/rookie-ninja/rk-gin/v2/boot"
+	// "github.com/rookie-ninja/rk-gin/v2/boot"
+	camunda_client_go "github.com/citilinkru/camunda-client-go/v3"
+	processor "github.com/citilinkru/camunda-client-go/v3/processor"
+	"fmt"
 	"gorm.io/gorm"
 	"net/http"
 	"time"
+	"strconv"
 )
 
 var dbInstance *gorm.DB
@@ -33,9 +37,99 @@ func main() {
 		dbInstance.AutoMigrate(&Product{})
 	}
 
-	// Register handler
-	entry := rkgin.GetGinEntry("rk-demo")
-	entry.Router.GET("/v1/details", DetailShower)
+	client := camunda_client_go.NewClient(camunda_client_go.ClientOptions{
+		EndpointUrl: "http://localhost:8080/engine-rest",
+		ApiUser:     "demo",
+		ApiPassword: "demo",
+		Timeout:     time.Second * 10,
+	})
+
+	logger := func(err error) {
+		fmt.Println(err.Error())
+	}
+	proc := processor.NewProcessor(client, &processor.Options{
+		WorkerId:                  "demo-worker-products",
+		LockDuration:              time.Second * 5,
+		MaxTasks:                  10,
+		MaxParallelTaskPerHandler: 100,
+		LongPollingTimeout:        5 * time.Second,
+	}, logger)
+
+	errMsg := "Internal Server Error"
+	retries := 0
+	retryTimeout := 10
+
+	proc.AddHandler(
+		[]*camunda_client_go.QueryFetchAndLockTopic{
+			{TopicName: "aass-product-details"},
+		},
+		func(ctx *processor.Context) error {
+			_id, ok := ctx.Task.Variables["itemID"].Value.(string)
+
+			fmt.Println("id: ", _id)
+			if !ok {
+				return ctx.HandleFailure(processor.QueryHandleFailure{
+					ErrorMessage: &errMsg,
+					Retries: &retries,
+					RetryTimeout: &retryTimeout,
+				})
+				return nil
+			}
+
+			id, _ := strconv.Atoi(_id)
+			prod := &Product{}
+			res := dbInstance.Where("id = ?", id).First(prod)
+
+			if res.Error != nil {
+				if errors.Is(res.Error, gorm.ErrRecordNotFound)	{
+					return ctx.HandleFailure(processor.QueryHandleFailure{
+						ErrorMessage: &errMsg,
+						Retries: &retries,
+						RetryTimeout: &retryTimeout,
+					})
+				}
+				return ctx.HandleFailure(processor.QueryHandleFailure{
+					ErrorMessage: &errMsg,
+					Retries: &retries,
+					RetryTimeout: &retryTimeout,
+				})
+			}
+
+			// mapping results from prod array to camunda variables map
+			variables := make(map[string]camunda_client_go.Variable)
+			variables["productName"] = camunda_client_go.Variable{
+				Value: prod.Title,
+				Type: "string",
+			}
+			variables["productPrice"] = camunda_client_go.Variable{
+				Value: prod.Price,
+				Type: "double",
+			}
+			variables["productDesc"] = camunda_client_go.Variable{
+				Value: prod.Desc,
+				Type: "string",
+			}
+			variables["productType"] = camunda_client_go.Variable{
+				Value: prod.Type,
+				Type: "string",
+			}
+			variables["productImg"] = camunda_client_go.Variable{
+				Value: prod.Img,
+				Type: "string",
+			}
+
+			err := ctx.Complete(processor.QueryComplete{
+				Variables: &variables,
+			})
+
+			if err != nil {
+				fmt.Printf("Error set complete task %s: %s\n", ctx.Task.Id, err)
+			}
+			fmt.Printf("Task %s completed with\n", ctx.Task.Id)
+			fmt.Println(variables)
+			return nil
+		},
+	)
 
 	boot.WaitForShutdownSig(context.TODO())
 }

@@ -7,41 +7,22 @@ package main
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"github.com/rookie-ninja/rk-boot/v2"
 	"github.com/rookie-ninja/rk-db/postgres"
-	"github.com/rookie-ninja/rk-gin/v2/boot"
+	// "github.com/rookie-ninja/rk-gin/v2/boot"
+	camunda_client_go "github.com/citilinkru/camunda-client-go/v3"
+	processor "github.com/citilinkru/camunda-client-go/v3/processor"
+	"fmt"
 	"gorm.io/gorm"
-	"net/http"
+	"strconv"
 	"time"
 )
 
 var dbInstance *gorm.DB
 
 func main() {
-
-	//psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	//	"password=%s dbname=%s sslmode=disable",
-	//	host, dbport, user, password, dbname)
-	//
-	//db, err := sql.Open("postgres", psqlInfo)
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//err = db.Ping()
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println("Established a successful connection!")
-
 	// Create a new boot instance.
 	boot := rkboot.NewBoot()
-
-	// Register handler
-	entry := rkgin.GetGinEntry("rk-demo")
-	entry.Router.GET("/v1/products", ProductList)
 
 	// Bootstrap
 	boot.Bootstrap(context.TODO())
@@ -52,20 +33,86 @@ func main() {
 		dbInstance.AutoMigrate(&Product{})
 	}
 
-	boot.WaitForShutdownSig(context.TODO())
-}
+	client := camunda_client_go.NewClient(camunda_client_go.ClientOptions{
+		EndpointUrl: "http://localhost:8080/engine-rest",
+		ApiUser:     "demo",
+		ApiPassword: "demo",
+		Timeout:     time.Second * 10,
+	})
 
-// FilterList Gets all products and return them as a list
-func ProductList(ctx *gin.Context) {
-	var prod []Product
-	res := dbInstance.Find(&prod)
-
-	if res.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, res.Error)
-		return
+	logger := func(err error) {
+		fmt.Println(err.Error())
 	}
+	proc := processor.NewProcessor(client, &processor.Options{
+		WorkerId:                  "demo-worker-products",
+		LockDuration:              time.Second * 5,
+		MaxTasks:                  10,
+		MaxParallelTaskPerHandler: 100,
+		LongPollingTimeout:        5 * time.Second,
+	}, logger)
 
-	ctx.JSON(http.StatusOK, prod)
+	errMsg := "Internal Server Error"
+	retries := 0
+	retryTimeout := 10
+
+	proc.AddHandler(
+		[]*camunda_client_go.QueryFetchAndLockTopic{
+			{TopicName: "aass-show_catalogue"},
+		},
+		func(ctx *processor.Context) error {
+
+			var prod []Product
+			res := dbInstance.Find(&prod)
+
+			if res.Error != nil {
+				return ctx.HandleFailure(processor.QueryHandleFailure{
+					ErrorMessage: &errMsg,
+					Retries: &retries,
+					RetryTimeout: &retryTimeout,
+				})
+			}
+
+			// mapping results from prod array to camunda variables map
+			variables := make(map[string]camunda_client_go.Variable)
+			i := 1
+			for _, p := range prod {
+				variables["productName" + strconv.Itoa(i)] = camunda_client_go.Variable{
+					Value: "# " + p.Title,
+					Type: "string",
+				}
+				variables["ProductImg" + strconv.Itoa(i)] = camunda_client_go.Variable{
+					Value: p.Img,
+					Type: "string",
+				}
+				variables["productPrice" + strconv.Itoa(i)] = camunda_client_go.Variable{
+					Value: p.Price,
+					Type: "double",
+				}
+				variables["productDesc" + strconv.Itoa(i)] = camunda_client_go.Variable{
+					Value: p.Desc,
+					Type: "string",
+				}
+				variables["productType" + strconv.Itoa(i)] = camunda_client_go.Variable{
+					Value: p.Type,
+					Type: "string",
+				}
+				i = i + 1
+			}
+
+			err := ctx.Complete(processor.QueryComplete{
+				Variables: &variables,
+			})
+
+			if err != nil {
+				fmt.Printf("Error set complete task %s: %s\n", ctx.Task.Id, err)
+			}
+			fmt.Printf("Task %s completed with\n", ctx.Task.Id)
+			fmt.Println(variables)
+			return nil
+		},
+	)
+
+	boot.WaitForShutdownSig(context.TODO())
 }
 
 type Base struct {

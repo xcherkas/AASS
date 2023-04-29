@@ -1,7 +1,7 @@
 # boot.yaml
 gin:
   - name: rk-demo
-    port: 8080
+    port: 8089
     enabled: true
     commonService:
       enabled: true
@@ -20,7 +20,7 @@ postgres:
   - name: aass-db                     # Required
     enabled: true                     # Required
     domain: "*"                       # Optional
-    addr: "postgres:5432"            # Optional, default: localhost:5432
+    addr: "localhost:5432"            # Optional, default: localhost:5432
     user: postgres                    # Optional, default: postgres
     pass: changeme                        # Optional, default: pass
     database:

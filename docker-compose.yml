@@ -9,8 +9,7 @@ services:
       - postgres
     volumes:
       - ./details/:/opt/app/api
-    networks:
-      - comnet
+    network_mode: "host"
   filter:
     build:
       dockerfile: Dockerfile.go
@@ -19,8 +18,7 @@ services:
       - postgres
     volumes:
       - ./filter/:/opt/app/api
-    networks:
-      - comnet
+    network_mode: "host"
   products:
     build:
       dockerfile: Dockerfile.go
@@ -29,8 +27,7 @@ services:
       - postgres
     volumes:
       - ./products/:/opt/app/api
-    networks:
-      - comnet
+    network_mode: "host"
   searcher:
     build:
       dockerfile: Dockerfile.go
@@ -39,22 +36,7 @@ services:
       - postgres
     volumes:
       - ./searcher/:/opt/app/api
-    networks:
-      - comnet
-
-  nginx:
-    build:
-      dockerfile: Dockerfile.nginx
-      context: .
-    depends_on:
-      - details
-      - filter
-      - products
-      - searcher
-    networks:
-      - comnet
-    ports:
-      - "8080:80"
+    network_mode: "host"
 
   postgres:
     container_name: postgres
@@ -65,15 +47,8 @@ services:
       PGDATA: /data/postgres
     volumes:
        - ./postgres:/data/postgres
-    ports:
-      - "5432:5432"
-    networks:
-      - comnet
+    network_mode: "host"
     restart: unless-stopped
-
-networks:
-  comnet:
-    driver: bridge
 
 volumes:
     postgres:
