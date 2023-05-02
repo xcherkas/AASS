@@ -17,13 +17,13 @@
     <div class="col-12">
       <table class="table table-borderless">
         <tbody>
-          {#each cart.products.data as item}
+          {#each cart.products as item}
             <tr>
               <th scope="row">
                 <img src="{ item.img }" alt="Image of { item.name }">
               </th>
-              <td>{ item.name }</td>
-              <td>${ item.cost }&nbsp;x</td>
+              <td>{ item.title }</td>
+              <td>${ item.price }&nbsp;x</td>
               <td>
                 <div class="input-group">
                   <div class="input-group-prepend">
@@ -35,8 +35,8 @@
                   </div>
                 </div>
               </td>
-              <td>${ item.cost * item.count }</td>
-              <td on:click={ ()=>{ Cart.remove(item.id) } }>&times;</td>
+              <td>${ item.price * item.count }</td>
+              <td on:click={ ()=>{ Cart.remove(item) } }>&times;</td>
             </tr>
           {:else}
             <tr>
@@ -48,8 +48,8 @@
     </div>
     <div class="col-12 d-flex justify-content-end align-items-center">
       <span class="total">Total: ${ cart.total || 0 }</span>
-      {#if cart.products.data.length > 0}
-        <button type="button" class="btn btn-success" on:click={ ()=>{ push('/order') } }>Checkout</button>
+      {#if cart.products.length > 0}
+        <button type="button" class="btn btn-success" on:click={ order }>Checkout</button>
       {/if}
     </div>
   </div>
@@ -66,8 +66,14 @@
     products: { data: [] }
   };
 
+  function order() {
+    console.log('New Order', cart);
+    Cart.update({ products: [] });
+    push('/');
+  }
+
   async function count(item, count) {
-    await Cart.add(item.id, count);
+    await Cart.add(item, count);
   }
   onMount(async () => {
     cart = await Cart.get();

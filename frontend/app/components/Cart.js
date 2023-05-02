@@ -1,7 +1,4 @@
-import axios from 'axios';
-import of from 'await-of';
-
-let cart = undefined;
+let cart = { products: [] };
 
 // Subscriptions
 let subs = [];
@@ -9,30 +6,15 @@ let subs = [];
 async function updateCart(data) {
   if (data) {
     cart = data;
-    cart.products.data = cart.products.data.map(el => {
-      let img = '//placehold.it/200';
-      if (el.images.data[0])
-        img = el.images.data[0].link;
-
-      return {...el, img: img };
-    });
+    cart.total = cart.products.reduce((acc, pr) => acc + pr.price * pr.count, 0);
+    // cart.products = data.products;
+    localStorage.setItem('cart', JSON.stringify(cart));
     return subs.forEach((listener) => listener(cart));
   }
 
-  let [res, err] = await of(axios.post('/api/order/get-cart/'));
-  if (err)
-    cart = { products: { data: [] } }
-  else {
-    cart = res.data.data;
-  }
-
-  cart.products.data = cart.products.data.map(el => {
-    let img = '//placehold.it/200';
-    if (el.images.data[0])
-      img = el.images.data[0].link;
-
-    return {...el, img: img };
-  });
+  const cartState = JSON.parse(localStorage.getItem('cart'));
+  cart = cartState ? cartState : { products: [] };
+  cart.total = cart.products.reduce((acc, pr) => acc + pr.price * pr.count, 0);
 }
 
 async function getCart() {
@@ -40,42 +22,34 @@ async function getCart() {
   return cart;
 }
 
-async function setProduct(productId, quantity = 1) {
-  let [res,] = await of(axios.post('/api/order/update-count/', {
-    product_id: productId,
-    count: quantity
-  }));
-  updateCart(res.data.data);
+async function setProduct(product, quantity = 1) {
+  const isInCart = cart.products.find((pr) => pr.id === product.id);
+  if (isInCart) {
+    isInCart.count = quantity;
+    return updateCart(cart);
+  }
+
+  await addProduct(product);
+  return setProduct(product, quantity);
 }
 
-async function addProduct(productId) {
-  let [res,] = await of(axios.post('/api/order/add-to-cart/', {
-    product_id: productId
-  }));
-  updateCart(res.data.data);
+async function addProduct(product) {
+  const products = cart.products;
+  const isInCart = products.find((pr) => pr.id === product.id);
+  if (isInCart)
+    return setProduct(product, isInCart.count + 1);
+
+  cart.products.push({...product, count: 1});
+  updateCart(cart);
 }
 
-async function purgeFromCart(productId) {
-  let [res,] = await of(axios.post('/api/order/delete-from-cart/', {
-    products: [productId]
-  }));
-  updateCart(res.data.data);
+async function purgeFromCart(product) {
+  updateCart({ products: cart.products.filter((pr) => pr.id !== product.id) });
 }
 
 async function placeOrder({ address, payment }) {
-  if (!address || !payment)
-    return false;
-
-  let [res, err] = await of(axios.post('/api/order/checkout/', {
-    address: JSON.stringify(address),
-    paymentData: JSON.stringify(payment)
-  }));
-
-  if (err)
-    return false;
-
-  updateCart(res.data.data);
-  return true;
+  console.warn('TO BE IMPLEMENTED');
+  return false;
 }
 
 function subscribe(listener) {

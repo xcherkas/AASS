@@ -4,7 +4,7 @@
   <!-- <a href="/hello/user" use:link use:active>Say hi with all default options!</a> -->
   <!-- <a href="#" class="header-link active">Home</a> -->
   <a href="/shop" class="header-link" use:link use:active={'/shop/*'}>Shop</a>
-  <a href="/cart" class="header-link" use:link use:active>Cart</a>
+  <a href="/cart" class="header-link" use:link use:active>Cart ({totalCount})</a>
   {#if logged }
     <a href="/profile" class="header-link" use:link use:active>Profile</a>
   {:else}
@@ -38,9 +38,23 @@
   import active from 'svelte-spa-router/active'
   import routes from './routes'
   import Auth from './components/Auth'
+  import Cart from './components/Cart';
 
   let logged = false;
+  let totalCount = 0;
+
+  function calcCartCount(cart) {
+    totalCount = cart.products.reduce((acc, item) => acc + item.count, 0);
+  }
+
+  Cart.get().then((cart) => {
+    calcCartCount(cart);
+  });
+
   Auth.subscribe(() => logged = Auth.isLogged());
+  Cart.subscribe((cart) => {
+    calcCartCount(cart);
+  });
 
 
 </script>

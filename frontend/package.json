@@ -1,7 +1,7 @@
 {
   "name": "wtech_project",
   "version": "1.0.0",
-  "description": "WTECH 2019 - Eshop client app",
+  "description": "Eshop client app",
   "repository": {},
   "main": "app/main.js",
   "scripts": {

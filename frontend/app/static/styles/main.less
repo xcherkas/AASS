@@ -10,14 +10,7 @@
     bottom: 0;
     overflow: hidden;
 
-    video {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translateX(-50%) translateY(-50%);
-      min-width: 100%;
-      min-height: 100%;
-    }
+
   }
   .company {
     position: absolute;
@@ -87,4 +80,40 @@
     background: @main;
     border-color: @main;
   }
+}
+
+
+@keyframes rainbowanim {
+	0% { background-position: 0 0; }
+	50% { background-position: 300% 0; }
+	100% { background-position: 0 0; }
+}
+.rainbow:before,
+.rainbow:after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: linear-gradient(
+    60deg,
+    #fb0094,
+    #0000ff,
+    #00ff00,
+    #ffff00,
+    #ff0000,
+    #fb0094,
+    #0000ff,
+    #00ff00,
+    #ffff00,
+    #ff0000
+  );
+  background-size: 400%;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  z-index: -1;
+  border-radius: inherit;
+  animation: rainbowanim 80s linear infinite;
+}
+.rainbow:after {
+  filter: blur(100vw);
 }

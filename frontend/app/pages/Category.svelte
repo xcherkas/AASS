@@ -3,8 +3,8 @@
     <img src="/client/img/coffee_tea.jpg" alt="Coffee & Tee">
   </div>
   <div class="col-12 col-md-6 desc">
-    <h2>Coffee&nbsp;&amp;&nbsp;Tee</h2>
-    <p>Coffee and tea are among the world’s most popular beverages, with black tea being the most sought-after variety of the later, accounting for 78% of all tea production and consumption</p>
+    <h2>Products</h2>
+    <p>Do you know?<br>Coffee and tea are among the world’s most popular beverages, with black tea being the most sought-after variety of the later, accounting for 78% of all tea production and consumption</p>
   </div>
 </div>
 
@@ -19,16 +19,11 @@
         {#each productsView.slice(page*perPage, (page+1)*perPage) as item}
           <div class="col-12 col-sm-6 col-md-4">
             <div class="product">
-              <img src="{ item.img }" alt="{item.name}" on:click={ () => { push(`/product/${item.id}`) } }>
-              <span class="title">{ item.name }</span>
-              <span class="cost">${ item.cost }</span>
-              <div class="d-flex justify-content-center features">
-                {#each item.characteristics.data as char}
-                  <img src="{ char.img }" alt="{char.name}" title="{char.name}">
-                {/each}
-              </div>
+              <img src="{ item.img }" alt="{item.title}" on:click={ () => { push(`/product/${item.id}`) } }>
+              <span class="title">{ item.title }</span>
+              <span class="cost">${ item.price }</span>
               <p class="desc">{ item.desc }</p>
-              <button type="button" class="btn btn-success" on:click={ () => { Cart.addMore(item.id) } }>Quick buy</button>
+              <button type="button" class="btn btn-success" on:click={ () => { Cart.addMore(item) } }>Quick buy</button>
             </div>
           </div>
         {/each}
@@ -38,7 +33,7 @@
         <div class="col-12 d-flex justify-content-center">
           <nav aria-label="Page navigation">
             <ul class="pagination">
-              
+
               <li class="page-item"><button class="page-link text-success" on:click={ ()=>{ page = Math.max(page - 1, 0); } }>Previous</button></li>
 
               {#each pages as index}
@@ -46,7 +41,7 @@
               {/each}
 
               <li class="page-item"><button class="page-link text-success" on:click={ ()=>{ page = Math.min(page + 1, maxPage); } }>Next</button></li>
-              
+
             </ul>
           </nav>
         </div>
@@ -65,28 +60,23 @@
 
   export let params = {};
   const pairs = {
-    'coffee': 'Coffee',
-    'tea': 'Tea'
+    'mobile': 'Mobile',
+    'pc': 'PC',
+    'tv': 'TV',
   }
   const perPage = 12;
 
   let products = [];
   let productsView = []
-  let category = pairs[params.category] || 'Coffee & Tee';
+  let category = 'Product Catalogue';
 
   let page = 0;
   let pages = [ 0 ]
   let maxPage = 0;
 
   onMount(async () => {
-    let [res,] = await of(axios.post('/api/product/get-all'));
-    res && (products = res.data.data.map(el => {
-      let img = '//placehold.it/200';
-      if (el.images.data[0])
-        img = el.images.data[0].link;
-
-      return {...el, img: img };
-    }));
+    let [res,] = await of(axios.get('/v1/products'));
+    res && (products = res.data);
   });
 
   $: {

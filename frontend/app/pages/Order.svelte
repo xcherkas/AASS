@@ -30,7 +30,7 @@
     <div class="col-12">
       <table class="table table-borderless">
         <tbody>
-          {#each cart.products.data as item}
+          {#each cart.products as item}
             <tr>
               <th scope="row">
                 <img src="{ item.img }" alt="Image #1">
@@ -170,16 +170,16 @@
       progressbar.style.width = "66%";
       step = 1;
     }
-      
+
   }
 
   onMount(async () => {
 
     if (!Auth.isLogged())
       push('/sign');
-    
+
     cart = await Cart.get();
-    if (cart.products.data.length < 1)
+    if (cart.products.length < 1)
       replace('/cart');
 
     profile = await Auth.profile();
