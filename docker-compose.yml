@@ -42,11 +42,24 @@ services:
     networks:
       - comnet
 
+
+  frontend:
+    build:
+      dockerfile: Dockerfile.fe
+      context: ./frontend
+    volumes:
+      - ./frontend/:/build
+    networks:
+      - comnet
+    ports:
+      - "3000:80"
+
   nginx:
     build:
       dockerfile: Dockerfile.nginx
       context: .
     depends_on:
+      - frontend
       - details
       - filter
       - products
