@@ -24,6 +24,12 @@ Vetva `base_kafka` obsahuje verziu kodu s implementáciou mikrosluzieb a Apache 
 
 `details`/`filter`/`searcher`/`products` - backend mikrosluzba, ktora sluzi na interakciu s DB
 
+## Spustenie
+Spustit vsetky sluzby je mozne pomocou prikazu:
+
+```bash
+docker-compose up
+```
 
 ## Troubleshooting
 Niekedy `nginx` servisa nechce fungovať, vtedy je potrebné ho zastaviť a znova spustiť. To sa dá urobiť pomocou príkazov:
