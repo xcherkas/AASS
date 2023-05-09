@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_13wfxeg" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:process id="order_process" name="order workflow" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Objednávka tovaru">
+      <bpmn:outgoing>Flow_0ikygv8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_17futrl" name="Zobrazenie katalógu" camunda:type="external" camunda:topic="aass-show_catalogue">
+      <bpmn:incoming>Flow_1138rr9</bpmn:incoming>
+      <bpmn:outgoing>Flow_0m0z3zy</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_1oz5flg" name="Výber filtrov na katalóg" camunda:formRef="catalogue-form" camunda:formRefBinding="deployment" camunda:assignee="demo">
+      <bpmn:incoming>Flow_0m0z3zy</bpmn:incoming>
+      <bpmn:outgoing>Flow_0kuhxnv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_0oqhzdy" name="Zobrazenie katalógu s aplikovaným filtrom" camunda:type="external" camunda:topic="aass-filter">
+      <bpmn:incoming>Flow_0kuhxnv</bpmn:incoming>
+      <bpmn:outgoing>Flow_1htfusb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_0r7qbyp" name="Vyhľadanie tovaru cez vyhľadávacie pole" camunda:formRef="catalogue-form" camunda:formRefBinding="deployment" camunda:assignee="demo">
+      <bpmn:incoming>Flow_1htfusb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0m1tskh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_1r7wqr2" name="Zobrazenie relevantných výsledkov" camunda:type="external" camunda:topic="aass-search">
+      <bpmn:incoming>Flow_0m1tskh</bpmn:incoming>
+      <bpmn:outgoing>Flow_06dz7sm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_1hs0zym" name="Výber tovaru z výsledkov" camunda:formRef="catalogue-form" camunda:formRefBinding="deployment" camunda:assignee="demo">
+      <bpmn:incoming>Flow_06dz7sm</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ardps8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_0vmlm27" name="Zobrazenie popisu tovaru" camunda:type="external" camunda:topic="aass-product-details">
+      <bpmn:incoming>Flow_0ardps8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0734pmx</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_1pz15yf" name="Objednanie tovaru" camunda:formRef="detail-form" camunda:formRefBinding="deployment" camunda:assignee="demo">
+      <bpmn:incoming>Flow_0734pmx</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ho56m7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_1o7zy9c" name="Objednaný tovar">
+      <bpmn:incoming>Flow_0ho56m7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0m0z3zy" sourceRef="Activity_17futrl" targetRef="Activity_1oz5flg" />
+    <bpmn:sequenceFlow id="Flow_0kuhxnv" sourceRef="Activity_1oz5flg" targetRef="Activity_0oqhzdy" />
+    <bpmn:sequenceFlow id="Flow_1htfusb" sourceRef="Activity_0oqhzdy" targetRef="Activity_0r7qbyp" />
+    <bpmn:sequenceFlow id="Flow_0m1tskh" sourceRef="Activity_0r7qbyp" targetRef="Activity_1r7wqr2" />
+    <bpmn:sequenceFlow id="Flow_06dz7sm" sourceRef="Activity_1r7wqr2" targetRef="Activity_1hs0zym" />
+    <bpmn:sequenceFlow id="Flow_0ardps8" sourceRef="Activity_1hs0zym" targetRef="Activity_0vmlm27" />
+    <bpmn:sequenceFlow id="Flow_0734pmx" sourceRef="Activity_0vmlm27" targetRef="Activity_1pz15yf" />
+    <bpmn:sequenceFlow id="Flow_0ho56m7" sourceRef="Activity_1pz15yf" targetRef="Event_1o7zy9c" />
+    <bpmn:userTask id="Activity_06fkahm" name="Otvorenie katalógu" camunda:formRef="catalogue-form" camunda:formRefBinding="deployment" camunda:assignee="demo">
+      <bpmn:incoming>Flow_0ikygv8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1138rr9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1138rr9" sourceRef="Activity_06fkahm" targetRef="Activity_17futrl" />
+    <bpmn:sequenceFlow id="Flow_0ikygv8" sourceRef="StartEvent_1" targetRef="Activity_06fkahm" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="order_process">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="142" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="131" y="142" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17futrl_di" bpmnElement="Activity_17futrl">
+        <dc:Bounds x="340" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oz5flg_di" bpmnElement="Activity_1oz5flg">
+        <dc:Bounds x="460" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0oqhzdy_di" bpmnElement="Activity_0oqhzdy">
+        <dc:Bounds x="590" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0r7qbyp_di" bpmnElement="Activity_0r7qbyp">
+        <dc:Bounds x="710" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r7wqr2_di" bpmnElement="Activity_1r7wqr2">
+        <dc:Bounds x="840" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hs0zym_di" bpmnElement="Activity_1hs0zym">
+        <dc:Bounds x="840" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vmlm27_di" bpmnElement="Activity_0vmlm27">
+        <dc:Bounds x="710" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1pz15yf_di" bpmnElement="Activity_1pz15yf">
+        <dc:Bounds x="590" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1o7zy9c_di" bpmnElement="Event_1o7zy9c">
+        <dc:Bounds x="492" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="469" y="245" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06fkahm_di" bpmnElement="Activity_06fkahm">
+        <dc:Bounds x="210" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0m0z3zy_di" bpmnElement="Flow_0m0z3zy">
+        <di:waypoint x="440" y="117" />
+        <di:waypoint x="460" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0kuhxnv_di" bpmnElement="Flow_0kuhxnv">
+        <di:waypoint x="560" y="117" />
+        <di:waypoint x="590" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1htfusb_di" bpmnElement="Flow_1htfusb">
+        <di:waypoint x="690" y="117" />
+        <di:waypoint x="710" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0m1tskh_di" bpmnElement="Flow_0m1tskh">
+        <di:waypoint x="810" y="117" />
+        <di:waypoint x="840" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06dz7sm_di" bpmnElement="Flow_06dz7sm">
+        <di:waypoint x="890" y="157" />
+        <di:waypoint x="890" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ardps8_di" bpmnElement="Flow_0ardps8">
+        <di:waypoint x="840" y="220" />
+        <di:waypoint x="810" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0734pmx_di" bpmnElement="Flow_0734pmx">
+        <di:waypoint x="710" y="220" />
+        <di:waypoint x="690" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ho56m7_di" bpmnElement="Flow_0ho56m7">
+        <di:waypoint x="590" y="220" />
+        <di:waypoint x="528" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1138rr9_di" bpmnElement="Flow_1138rr9">
+        <di:waypoint x="310" y="117" />
+        <di:waypoint x="340" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ikygv8_di" bpmnElement="Flow_0ikygv8">
+        <di:waypoint x="178" y="117" />
+        <di:waypoint x="210" y="117" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

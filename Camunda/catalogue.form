@@ -1,0 +1,148 @@
+{
+  "components": [
+    {
+      "text": "# Katalog",
+      "type": "text",
+      "id": "Field_0l38j0q",
+      "layout": {
+        "row": "Row_0pfta51"
+      }
+    },
+    {
+      "label": "Product name filter",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0nhns4j",
+        "columns": null
+      },
+      "id": "Field_0ctod4c",
+      "key": "query"
+    },
+    {
+      "values": [
+        {
+          "label": "Mobile phone",
+          "value": "mobile"
+        },
+        {
+          "label": "TV",
+          "value": "tv"
+        },
+        {
+          "label": "PC",
+          "value": "pc"
+        }
+      ],
+      "label": "Product type filter",
+      "type": "select",
+      "layout": {
+        "row": "Row_0p0g7au",
+        "columns": null
+      },
+      "id": "Field_1oj1ysg",
+      "key": "filterType"
+    },
+    {
+      "label": "Show product",
+      "type": "select",
+      "layout": {
+        "row": "Row_0otdj63",
+        "columns": null
+      },
+      "id": "Field_1lzapzx",
+      "key": "itemID",
+      "valuesKey": "itemIds",
+      "conditional": {
+        "hide": "=itemIds = null"
+      }
+    },
+    {
+      "action": "submit",
+      "label": "Zobrazit",
+      "type": "button",
+      "id": "Field_05e6azc",
+      "key": "field_07mb5lz",
+      "properties": {},
+      "layout": {
+        "row": "Row_0kmvwhz"
+      }
+    },
+    {
+      "label": "Image view",
+      "type": "image",
+      "layout": {
+        "row": "Row_1sn4xdr",
+        "columns": null
+      },
+      "id": "Field_1hh0x99",
+      "source": "=ProductImg1",
+      "conditional": {
+        "hide": "=ProductName1 = null"
+      }
+    },
+    {
+      "text": "=\"# \" + ProductName1",
+      "type": "text",
+      "layout": {
+        "row": "Row_18h5qzi",
+        "columns": null
+      },
+      "id": "Field_059p7lj",
+      "conditional": {
+        "hide": "=ProductName1"
+      }
+    },
+    {
+      "text": "=ProductPrice1",
+      "type": "text",
+      "layout": {
+        "row": "Row_18h5qzi",
+        "columns": null
+      },
+      "id": "Field_1fmr6xt"
+    },
+    {
+      "label": "Image view",
+      "type": "image",
+      "layout": {
+        "row": "Row_0n8181z",
+        "columns": null
+      },
+      "id": "Field_1wt89zk",
+      "source": "=ProductImg2",
+      "conditional": {
+        "hide": "=ProductName2 = null"
+      }
+    },
+    {
+      "text": "=\"# \" + ProductName2",
+      "type": "text",
+      "layout": {
+        "row": "Row_04astjq",
+        "columns": null
+      },
+      "id": "Field_159uz5q",
+      "conditional": {
+        "hide": "=ProductName2"
+      }
+    },
+    {
+      "text": "=ProductPrice2",
+      "type": "text",
+      "layout": {
+        "row": "Row_04astjq",
+        "columns": null
+      },
+      "id": "Field_0qxsu84"
+    }
+  ],
+  "type": "default",
+  "id": "catalogue-form",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.10.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.18.0",
+  "schemaVersion": 8
+}

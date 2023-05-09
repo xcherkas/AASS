@@ -1,0 +1,80 @@
+{
+  "components": [
+    {
+      "label": "Image view",
+      "type": "image",
+      "layout": {
+        "row": "Row_1uzz4og",
+        "columns": null
+      },
+      "id": "Field_0e31wg6",
+      "source": "=productImg"
+    },
+    {
+      "text": "=\"# \" + productName",
+      "type": "text",
+      "id": "Field_11tohxb",
+      "layout": {
+        "row": "Row_0nxjdoc"
+      }
+    },
+    {
+      "text": "=\"### \" + productType",
+      "type": "text",
+      "id": "Field_1gn8y7t",
+      "layout": {
+        "row": "Row_0iz82ed"
+      }
+    },
+    {
+      "text": "=\"### \" + string(productPrice)",
+      "type": "text",
+      "layout": {
+        "row": "Row_0iz82ed",
+        "columns": null
+      },
+      "id": "Field_12gxhcw"
+    },
+    {
+      "text": "=\"### \" + productDesc",
+      "type": "text",
+      "layout": {
+        "row": "Row_1tw5346",
+        "columns": null
+      },
+      "id": "Field_0na5qrq"
+    },
+    {
+      "label": "Počet kusov tovaru",
+      "type": "number",
+      "id": "Field_1yshk6y",
+      "key": "count",
+      "description": "Zadajte počet kusov tovaru",
+      "defaultValue": 1,
+      "layout": {
+        "row": "Row_0szm4m4"
+      },
+      "increment": "1"
+    },
+    {
+      "action": "submit",
+      "label": "Kúpiť",
+      "type": "button",
+      "id": "Field_1v90zm8",
+      "key": "field_0ih5ou9",
+      "properties": {},
+      "layout": {
+        "row": "Row_0yl6mdg"
+      }
+    }
+  ],
+  "type": "default",
+  "id": "detail-form",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.10.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.18.0",
+  "schemaVersion": 8
+}
