@@ -3,6 +3,7 @@ node_modules
 .idea
 thumbs.db
 build
+kafka
 www
 dist
 data/

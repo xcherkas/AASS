@@ -1,48 +1,30 @@
 <div class="filter-group">
+  <span class="title">Search by name</span>
+  <input class="form-text-input" type="text" bind:value={text} >
+</div>
+<button class="btn btn-success" type="button" on:click={ search } style="margin-bottom: 20px">Search</button>
+
+<div class="filter-group">
   <span class="title">Category</span>
   <div class="form-check">
     <label class="form-check-label">
-      <input class="form-check-input" type="checkbox" bind:group={categories} value="coffee">
-      Coffee
+      <input class="form-check-input" type="radio" bind:group={selectedCategory} value="mobile">
+      Mobile
     </label>
   </div>
   <div class="form-check">
     <label class="form-check-label">
-      <input class="form-check-input" type="checkbox" bind:group={categories} value="tea">
-      Tea
+      <input class="form-check-input" type="radio" bind:group={selectedCategory} value="pc">
+      PC
+    </label>
+  </div>
+  <div class="form-check">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" bind:group={selectedCategory} value="tv">
+      TV
     </label>
   </div>
 </div>
-
-<div class="filter-group">
-  <span class="title">PowerUps</span>
-  <div class="form-check">
-    <label class="form-check-label">
-      <input class="form-check-input" type="checkbox" bind:group={powers} value="1">
-      Intence
-    </label>
-  </div>
-  <div class="form-check">
-    <label class="form-check-label">
-      <input class="form-check-input" type="checkbox" bind:group={powers} value="2">
-      Zero-waste
-    </label>
-  </div>
-  <div class="form-check">
-    <label class="form-check-label">
-      <input class="form-check-input" type="checkbox" bind:group={powers} value="3">
-      Luxury
-    </label>
-  </div>
-</div>
-
-<div class="filter-group">
-  <span class="title">Price up to { price }</span>
-  <div class="form-group">
-    <input type="range" class="form-control-range" min="0" max="1000" step="1" bind:value={ price }>
-  </div>
-</div>
-
 <button class="btn btn-success" type="button" on:click={ filter }>Apply</button>
 
 
@@ -55,31 +37,28 @@
   export let products;
   export let get;
 
-  let categories = category != null ? [category] : [];
-  let powers = [];
-  let price = 1000;
+  let selectedCategory = category != null ? category : undefined;
+  let text = "";
 
-  function filter() {
+  async function filter() {
+    if (!selectedCategory)
+      return get(products);
 
-    let filtered = products.filter((el) => {
-      try {
-
-        if (categories.length > 0 && !categories.includes(el.categories.data.name.toLowerCase()))
-          return false;
-        
-        let el_chars = el.characteristics.data.map(char => char.id.toString());
-
-        if ( powers.length > 0 && (el_chars.length == 0 || !el_chars.every(cat => powers.includes(cat))) )
-          return false;
-        
-        if (el.cost > price)
-          return false;
-
-        return true;
-      } catch (ex) { console.log(ex); return false; }
-    });
-    get(filtered);
+    const [res,] = await of(axios.post(`/v1/proxy/ms-filter`, {
+      type: selectedCategory
+    }));
+    get(res.data);
   };
+
+  async function search() {
+    if (text.length == 0)
+      return get(products);
+
+    const [res,] = await of(axios.post(`/v1/proxy/ms-searcher`, {
+      query: text
+    }));
+    get(res.data);
+  }
 
   $: filter(products)
 

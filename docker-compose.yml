@@ -1,6 +1,17 @@
 version: '3.5'
 
 services:
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    volumes:
+      - ./kafka/:/bitnami
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    networks:
+      - comnet
+    ports:
+      - "9092:9092"
+
   details:
     build:
       dockerfile: Dockerfile.go
@@ -9,7 +20,8 @@ services:
       - postgres
     volumes:
       - ./details/:/opt/app/api
-    network_mode: "host"
+    networks:
+      - comnet
   filter:
     build:
       dockerfile: Dockerfile.go
@@ -18,7 +30,8 @@ services:
       - postgres
     volumes:
       - ./filter/:/opt/app/api
-    network_mode: "host"
+    networks:
+      - comnet
   products:
     build:
       dockerfile: Dockerfile.go
@@ -27,7 +40,8 @@ services:
       - postgres
     volumes:
       - ./products/:/opt/app/api
-    network_mode: "host"
+    networks:
+      - comnet
   searcher:
     build:
       dockerfile: Dockerfile.go
@@ -36,7 +50,45 @@ services:
       - postgres
     volumes:
       - ./searcher/:/opt/app/api
-    network_mode: "host"
+    networks:
+      - comnet
+
+
+  frontend:
+    build:
+      dockerfile: Dockerfile.fe
+      context: ./frontend
+    volumes:
+      - ./frontend/:/build
+    networks:
+      - comnet
+    ports:
+      - "3000:80"
+
+  proxy:
+    build:
+      context: ./kafka-proxy
+      dockerfile: ../Dockerfile.node
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    ports:
+      - "3003:3003"
+    networks:
+      - comnet
+
+  nginx:
+    build:
+      dockerfile: Dockerfile.nginx
+      context: .
+    depends_on:
+      - frontend
+      - proxy
+      - filter
+    networks:
+      - comnet
+    ports:
+      - "8080:80"
 
   postgres:
     container_name: postgres
@@ -47,8 +99,15 @@ services:
       PGDATA: /data/postgres
     volumes:
        - ./postgres:/data/postgres
-    network_mode: "host"
+    networks:
+      - comnet
+    ports:
+      - "5432:5432"
     restart: unless-stopped
 
+networks:
+  comnet:
+    driver: bridge
+
 volumes:
-    postgres:
+  postgres:

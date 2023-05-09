@@ -1,29 +1,26 @@
-// Copyright (c) 2021 rookie-ninja
-//
-// Use of this source code is governed by an Apache-style
-// license that can be found in the LICENSE file.
-
-//TODO: search item, show details of product
-
 package main
 
 import (
-	"context"
-	"github.com/rookie-ninja/rk-boot/v2"
+  "github.com/rookie-ninja/rk-boot/v2"
 	"github.com/rookie-ninja/rk-db/postgres"
-	// "github.com/rookie-ninja/rk-gin/v2/boot"
-	camunda_client_go "github.com/citilinkru/camunda-client-go/v3"
-	processor "github.com/citilinkru/camunda-client-go/v3/processor"
-	"fmt"
-	"strconv"
 	"gorm.io/gorm"
-	"time"
+
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+  "strings"
+  "encoding/json"
+  "time"
+
+	"github.com/Shopify/sarama"
 )
 
 var dbInstance *gorm.DB
 
-func main() {
 
+func main() {
 	// Create a new boot instance.
 	boot := rkboot.NewBoot()
 
@@ -36,105 +33,119 @@ func main() {
 		dbInstance.AutoMigrate(&Product{})
 	}
 
-	client := camunda_client_go.NewClient(camunda_client_go.ClientOptions{
-		EndpointUrl: "http://localhost:8080/engine-rest",
-		ApiUser:     "demo",
-		ApiPassword: "demo",
-		Timeout:     time.Second * 10,
-	})
-
-	logger := func(err error) {
-		fmt.Println(err.Error())
+	// Create a Kafka producer
+	config := sarama.NewConfig()
+	producer, err := sarama.NewAsyncProducer([]string{"kafka:9092"}, config)
+	if err != nil {
+		log.Fatalf("Error creating producer: %s", err.Error())
 	}
-	proc := processor.NewProcessor(client, &processor.Options{
-		WorkerId:                  "demo-worker-filter",
-		LockDuration:              time.Second * 5,
-		MaxTasks:                  10,
-		MaxParallelTaskPerHandler: 100,
-		LongPollingTimeout:        5 * time.Second,
-	}, logger)
+	defer func() {
+		if err := producer.Close(); err != nil {
+			log.Fatalf("Error closing producer: %s", err.Error())
+		}
+	}()
 
-	errMsg := "Internal Server Error"
-	retries := 0
-	retryTimeout := 10
+	// Create a Kafka consumer group
+	consumerGroup, err := sarama.NewConsumerGroup([]string{"kafka:9092"}, "eshop__consumers__filter", config)
+	if err != nil {
+		log.Fatalf("Error creating consumer group: %s", err.Error())
+	}
+	defer func() {
+		if err := consumerGroup.Close(); err != nil {
+			log.Fatalf("Error closing consumer group: %s", err.Error())
+		}
+	}()
 
-	proc.AddHandler(
-		[]*camunda_client_go.QueryFetchAndLockTopic{
-			{TopicName: "aass-filter"},
-		},
-		func(ctx *processor.Context) error {
-			var prod []Product
-			typeValue, ok := ctx.Task.Variables["filterType"].Value.(string)
+	// Create a channel to receive OS signals
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt)
 
-			if !ok {
-				return ctx.HandleFailure(processor.QueryHandleFailure{
-					ErrorMessage: &errMsg,
-					Retries: &retries,
-					RetryTimeout: &retryTimeout,
-				})
-			}
-			res := dbInstance.Where("type = ?", typeValue).Find(&prod)
-
-			if res.Error != nil {
-				fmt.Printf("Error set complete task %s: %s\n", ctx.Task.Id, res.Error)
-				return ctx.HandleFailure(processor.QueryHandleFailure{
-					ErrorMessage: &errMsg,
-					Retries: &retries,
-					RetryTimeout: &retryTimeout,
-				})
-			}
-
-			// mapping results from prod array to camunda variables map
-			variables := make(map[string]camunda_client_go.Variable)
-			i := 1
-			for _, p := range prod {
-				variables["ProductName" + strconv.Itoa(i)] = camunda_client_go.Variable{
-					Value: "# " + p.Title,
-					Type: "string",
-				}
-				variables["ProductImg" + strconv.Itoa(i)] = camunda_client_go.Variable{
-					Value: p.Img,
-					Type: "string",
-				}
-				variables["ProductPrice" + strconv.Itoa(i)] = camunda_client_go.Variable{
-					Value: p.Price,
-					Type: "double",
-				}
-				i = i + 1
-			}
-			variables["filterType"] = camunda_client_go.Variable{
-				Value: typeValue,
-				Type: "string",
-			}
-
-			err := ctx.Complete(processor.QueryComplete{
-				Variables: &variables,
-			})
-
+	// Start the consumer group
+	go func() {
+		for {
+			err := consumerGroup.Consume(context.Background(), []string{"eshop"}, &MyConsumer{producer: producer})
 			if err != nil {
-				fmt.Printf("Error set complete task %s: %s\n", ctx.Task.Id, err)
+				log.Fatalf("Error consuming messages: %s", err.Error())
 			}
-			fmt.Printf("Task %s completed with\n", ctx.Task.Id)
-			fmt.Println(variables)
-			return nil
-		},
-	)
+		}
+	}()
 
+	// Wait for OS signal to exit
 	boot.WaitForShutdownSig(context.TODO())
 }
 
+// MyConsumer implements the sarama.ConsumerGroupHandler interface
+type MyConsumer struct {
+	producer sarama.AsyncProducer
+}
+
+func (c *MyConsumer) Setup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func (c *MyConsumer) Cleanup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func Buildup(name string, id string, value string) string {
+  return name + ":@?@:" + id + ":@?@:" + value
+}
+
+func (c *MyConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for message := range claim.Messages() {
+    msg := string(message.Value)
+
+    if !strings.HasPrefix(msg, "ms-filter") {
+      fmt.Println("Skipping...\n")
+      continue
+    }
+
+    preparsed := strings.Split(msg, ":@?@:")
+
+    var result Input
+    pload := []byte(preparsed[2])
+    err := json.Unmarshal(pload, &result)
+
+    var prod []Product
+    res := dbInstance.Where("type = ?", result.Type).Find(&prod)
+
+
+    if res.Error != nil {
+      c.producer.Input() <- &sarama.ProducerMessage{Topic: "eshop", Value: sarama.StringEncoder(Buildup("viewer",preparsed[1],"{\"error\": \"Error occured\"}"))}
+      session.MarkMessage(message, "")
+      continue
+    }
+
+    jsoned, err := json.Marshal(prod)
+
+    if err != nil {
+      c.producer.Input() <- &sarama.ProducerMessage{Topic: "eshop", Value: sarama.StringEncoder(Buildup("viewer",preparsed[1],"{\"error\": \"Error occured\"}"))}
+      session.MarkMessage(message, "")
+      continue
+    }
+
+		c.producer.Input() <- &sarama.ProducerMessage{Topic: "eshop", Value: sarama.StringEncoder(Buildup("viewer",preparsed[1], string(jsoned)))}
+    session.MarkMessage(message, "")
+	}
+	return nil
+}
+
+type Input struct {
+  Type string `json:"type"`
+}
+
 type Base struct {
-	CreatedAt time.Time      `yaml:"-" json:"-"`
-	UpdatedAt time.Time      `yaml:"-" json:"-"`
-	DeletedAt gorm.DeletedAt `yaml:"-" json:"-" gorm:"index"`
+  CreatedAt time.Time      `yaml:"-" json:"-"`
+  UpdatedAt time.Time      `yaml:"-" json:"-"`
+  DeletedAt gorm.DeletedAt `yaml:"-" json:"-" gorm:"index"`
 }
 
 type Product struct {
-	Base
-	Id   int    `yaml:"id" json:"id" gorm:"primaryKey"`
-	Title string `yaml:"title" json:"title"`
-	Desc string `yaml:"desc" json:"desc"`
-	Price float32 `yaml:"price" json:"price"`
-	Img string `yaml:"img" json:"img"`
-	Type string `yaml:"type" json:"type"`
+  Base
+  Id   int    `yaml:"id" json:"id" gorm:"primaryKey"`
+  Title string `yaml:"title" json:"title"`
+  Desc string `yaml:"desc" json:"desc"`
+  Price float32 `yaml:"price" json:"price"`
+  Img string `yaml:"img" json:"img"`
+  Type string `yaml:"type" json:"type"`
 }

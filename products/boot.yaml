@@ -20,7 +20,7 @@ postgres:
   - name: aass-db                     # Required
     enabled: true                     # Required
     domain: "*"                       # Optional
-    addr: "localhost:5432"            # Optional, default: localhost:5432
+    addr: "postgres:5432"            # Optional, default: localhost:5432
     user: postgres                    # Optional, default: postgres
     pass: changeme                        # Optional, default: pass
     database:
